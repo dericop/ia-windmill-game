@@ -13,16 +13,16 @@ import jade.core.behaviours.CyclicBehaviour;
 import jade.gui.GuiAgent;
 import jade.gui.GuiEvent;
 import jade.lang.acl.ACLMessage;
+import jade.lang.acl.UnreadableException;
 import jade.wrapper.AgentController;
 import jade.wrapper.ContainerController;
 import jade.wrapper.StaleProxyException;
 import java.io.IOException;
-import java.io.Serializable;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import model.Board;
+import model.Line;
 import model.Package;
-import model.Player;
 import statics.Messages;
 
 /**
@@ -32,8 +32,8 @@ import statics.Messages;
 public class Game extends GuiAgent {
 
     private Board board;
-    private String player1 = "p1";
-    private String player2 = "p2";
+    public static String player1 = "p1";
+    public static String player2 = "p2";
     private String cPlayer; //usuario jugando actualmente
     private String state;
     private char gameType;
@@ -43,13 +43,14 @@ public class Game extends GuiAgent {
 
     @Override
     protected void setup() {
+        this.addBehaviour(new GameBehavior());
         gameType = Messages.TYPE_MACHINE_MACHINE;
 
         board = new Board();
 
         createPlayerAgents();
         assignTurns();
-        initPlay();
+        play();
 
     }
 
@@ -61,21 +62,24 @@ public class Game extends GuiAgent {
         AgentController agent;
 
         try {
-            Object args[] = new Object[2];
+            Object args[] = new Object[1];
+
             String p1;
             String p2;
-            
-            if(Messages.TYPE_HUMAN_MACHINE == gameType){
+
+            if (Messages.TYPE_HUMAN_MACHINE == gameType) {
                 p1 = "agentsController.Machine";
                 p2 = "agentsController.Human";
-            }else{
+            } else {
                 p1 = "agentsController.Machine";
                 p2 = "agentsController.Machine";
             }
-                
+
+            args[0] = player1;
             agent = cc.createNewAgent(player1, p1, args);
             agent.start();
-            
+
+            args[0] = player2;
             agent = cc.createNewAgent(player2, p2, args);
             agent.start();
 
@@ -91,33 +95,29 @@ public class Game extends GuiAgent {
         } else {
             cPlayer = player2;
         }
-
-        state = Messages.STATE_PLAYING;
     }
 
-    private void initPlay() {
+    private void play() {
         Package pck = new Package(board, Messages.NEXT_TURN);
         sendMessage(cPlayer, pck);
     }
 
-    public void createBoard() {
-
+    private void playerCanAttack() {
+        Package pck = new Package(null, Messages.ATTACK);
+        sendMessage(cPlayer, pck);
     }
 
-    public void createPlayers() {
-
+    private void changePlayer() {
+        if (cPlayer.equals(player1)) {
+            cPlayer = player2;
+        } else {
+            cPlayer = player1;
+        }
     }
+
 
     public Board getBoard() {
         return board;
-    }
-
-    public void setPlayer1(String player1) {
-        this.player1 = player1;
-    }
-
-    public void setPlayer2(String player2) {
-        this.player2 = player2;
     }
 
     public void setType(char type) {
@@ -140,6 +140,41 @@ public class Game extends GuiAgent {
         send(aclMessage);
     }
 
+    private void showGraphicalMove() {
+
+    }
+
+    private void showGraphicalWillmill() {
+
+    }
+    
+    private void showGraphicalAttack(String node) {
+
+    }
+    
+    private String[] setLogicalMove(Line line) {
+        //ubicar y guardar el origen
+        //hayar el nodo objetivo
+        //reemplazar el objetivo con el nodo origen
+        String[] nodes = new String[2];
+        
+        return nodes;
+    }
+    
+    private String[] setLogivalMove(Line linO, Line lineD){
+        String[] nodes = new String[2];
+        
+        return nodes;
+    }
+
+    private void attackNode(String node) {
+
+    }
+
+    private void showWinner() {
+
+    }
+
     @Override
     protected void onGuiEvent(GuiEvent ge) {
 
@@ -156,17 +191,57 @@ public class Game extends GuiAgent {
             ACLMessage answer = blockingReceive();
 
             if (answer != null && answer.getContent() != null) {
-                switch (answer.getContent()) {
-                    case Messages.TURN_FINISHED:
-                        //sigue el otro a mover fichas
-                        break;
-                    
-                    case Messages.ATTACK:
-                        //atacar
-                        break;
-                    
-                    
+                try {
+                    Package pck = (Package) answer.getContentObject();
 
+                    switch (pck.mMessage) {
+
+                        case Messages.TURN_FINISHED:
+                            Line line = (Line) pck.args.get("line");
+                            setLogicalMove(line);
+                            showGraphicalMove();
+                            changePlayer();
+                            play();
+
+                            break;
+
+                        case Messages.TURN_FINISHED_WFOUNDED:
+                            Line l = (Line) pck.args.get("line");
+                            setLogicalMove(l);
+                            showGraphicalWillmill();
+                            playerCanAttack();
+
+                            break;
+
+                        case Messages.PLAYER_LOSE:
+                            showWinner();
+                            System.out.println("Has perdido");
+                            break;
+
+                        case Messages.ATTACKED_FINISHED:
+                            String node = pck.args.get("nodeAttacked") + "";
+                            attackNode(node);
+                            showGraphicalAttack(node);
+                            changePlayer();
+
+                            if (pck.args.get("willmillWasDestroyed") != null) {
+                                pck.mMessage = Messages.NOTIFY_DECREMENT_SLUG_AND_WM;
+                                sendMessage(cPlayer, pck);
+                            } else {
+                                pck.mMessage = Messages.NOTIFY_DECREMENT_SLUG;
+                                sendMessage(cPlayer, pck);
+                            }
+
+                            break;
+
+                        case Messages.SLUG_DECREMENTED_FINISHED:
+                            play();
+
+                            break;
+
+                    }
+                } catch (UnreadableException ex) {
+                    Logger.getLogger(Game.class.getName()).log(Level.SEVERE, null, ex);
                 }
             }
 

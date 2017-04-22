@@ -3,9 +3,11 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package model;
+package agentsController;
 
 import jade.core.Agent;
+import model.Board;
+import model.Package;
 
 /**
  *
@@ -13,17 +15,27 @@ import jade.core.Agent;
  */
 public abstract class Player extends Agent{
 
-    protected int slugs;
-    protected int wQuantity;
+    protected int slugs = 9;
+    protected int wQuantity = 0;
+    protected int slugsAssigned = 0;
     protected String id;
 
     public Player() {
-        slugs = 9;
-        wQuantity = 0;
+       
     }
 
-    public abstract void play();
+    @Override
+    protected void setup() {
+       this.id = getArguments()[0]+"";
+    }
+    
+    
+    public abstract void play(Board board, Package pck);
 
+    public int getSlugsAssigned() {
+        return slugsAssigned;
+    }
+     
     public int getSlugs() {
         return slugs;
     }
@@ -34,18 +46,6 @@ public abstract class Player extends Agent{
 
     public String getId() {
         return id;
-    }
-
-    public void moveSlugToNode(Node source, Node target) {
-
-    }
-
-    public void pinNode(Node node) {
-
-    }
-
-    public void attack(Player opponent, Node node) {
-
     }
 
     public void incrementWillmills() {

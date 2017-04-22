@@ -5,17 +5,19 @@
  */
 package model;
 
+import java.io.Serializable;
 import java.util.LinkedList;
 
 /**
  *
  * @author Dericop
  */
-public class Node {
+public class Node implements Serializable{
     
-    private int id;
+    private static final long serialVersionUID = 879965L;
+    private final int id;
     private String mCurrentPlayer;
-    private LinkedList<Node> adjacents;
+    private final LinkedList<Node> adjacents;
 
     
     public Node(int id) {

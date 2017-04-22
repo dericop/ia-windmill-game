@@ -7,6 +7,7 @@
 package model;
 
 import java.io.Serializable;
+import java.util.HashMap;
 
 /**
  *
@@ -16,13 +17,14 @@ public class Package implements Serializable{
     private static final long serialVersionUID = 8799656478674716638L;
     public Board mBoard;
     public String mMessage;
-    //poner la posicion a atacar.
+    public HashMap args;
     
     public Package() {}
     
     public Package(Board board, String message){
         mBoard = board;
         mMessage = message;
+        args = new HashMap();
     }
     
     public Package(String message){

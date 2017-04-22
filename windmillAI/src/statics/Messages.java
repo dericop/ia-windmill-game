@@ -20,10 +20,11 @@ public class Messages {
     public static final String NEXT_TURN = "Next Turn";
     public static final String ATTACK = "Can Attack";
     public static final String TURN_FINISHED = "Turn finished";
-    
-    
-    //---- Estados del juego -->
-    public static final String STATE_PLAYING = "P";
-    public static final String STATE_GAME_OVER = "G";
-    public static final String STATE_ATTACK = "A";
+    public static final String TURN_FINISHED_WFOUNDED = "Willmill Founded";
+    public static final String PLAYER_LOSE = "Player lose";
+    public static final String ATTACKED_FINISHED = "Attacked finished";
+    public static final String NOTIFY_DECREMENT_SLUG = "Player should decrement slugs";
+    public static final String SLUG_DECREMENTED_FINISHED = "Slug decremented finished";
+    public static final String NOTIFY_DECREMENT_SLUG_AND_WM = "Notify decrement slug and willmill";
+
 }

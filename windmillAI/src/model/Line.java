@@ -5,17 +5,22 @@
  */
 package model;
 
+import java.io.Serializable;
+
 /**
  *
  * @author Dericop
  */
-public class Line {
+public class Line implements Serializable{
 
+    private static final long serialVersionUID = 879965647867471L;
+    public int mId;
     public Node mLeft;
     public Node mCenter;
     public Node mRight;
 
-    public Line(Node left, Node center, Node right) {
+    public Line(int id,Node left, Node center, Node right) {
+        mId = id;
         mLeft = left;
         mCenter = center;
         mRight = right;
@@ -24,9 +29,17 @@ public class Line {
     public Line() {
     }
 
-    public boolean isComplete() {
+    public boolean isComplete(String usr) {
 
-        return false;
+        boolean isWillmill = false;
+
+        if (mLeft.getmCurrentPlayer().equals(usr)
+                && mCenter.getmCurrentPlayer().equals(usr)
+                && mRight.getmCurrentPlayer().equals(usr)) {
+
+            isWillmill = true;
+        }
+        return isWillmill;
     }
 
     @Override

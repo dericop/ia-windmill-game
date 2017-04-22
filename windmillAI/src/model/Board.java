@@ -12,10 +12,12 @@ import java.util.LinkedList;
  *
  * @author Dericop
  */
-public class Board{
+public class Board implements Serializable{
     
+    private static final long serialVersionUID = 123456L;
     public static int NUMBER_OF_LINES = 16;
     public static int NUMBER_OF_NODES = 24;
+    public static int NUMBER_OF_SLUGS_BY_PLAYER = 9;
 
     private LinkedList<Line> lines;
     private LinkedList<Node> nodes;
@@ -52,15 +54,15 @@ public class Board{
             if (counterNode < NUMBER_OF_NODES && !flat) {
                 currentLine++;
                 if (currentLine < 4) {
-                    this.lines.addLast(new Line(this.nodes.get(counterNode), this.nodes.get(counterNode + 1), this.nodes.get(counterNode + 2)));
+                    this.lines.addLast(new Line(i,this.nodes.get(counterNode), this.nodes.get(counterNode + 1), this.nodes.get(counterNode + 2)));
                 } else {
-                    this.lines.addLast(new Line(this.nodes.get(counterNode), this.nodes.get(counterNode + 1), this.nodes.get(counterNode - 6)));
+                    this.lines.addLast(new Line(i, this.nodes.get(counterNode), this.nodes.get(counterNode + 1), this.nodes.get(counterNode - 6)));
                     currentLine = 0;
                 }
                 counterNode += 2;
             } else {
                 flat = true;
-                this.lines.addLast(new Line(this.nodes.get(counterNode - 17), this.nodes.get(counterNode - 9), this.nodes.get(counterNode - 1)));
+                this.lines.addLast(new Line(i, this.nodes.get(counterNode - 17), this.nodes.get(counterNode - 9), this.nodes.get(counterNode - 1)));
                 counterNode -= 2;
             }
         }

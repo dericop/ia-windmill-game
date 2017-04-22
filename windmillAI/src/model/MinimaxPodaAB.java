@@ -12,5 +12,13 @@ package model;
  */
 public class MinimaxPodaAB {
     
+    public Line calculateMove(Board board){
+        return null;
+    }
+    
+    public Line getNewAssign(Board board){
+        return null;
+    }
+   
     
 }

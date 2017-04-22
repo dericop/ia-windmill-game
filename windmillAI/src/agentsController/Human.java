@@ -5,13 +5,14 @@
  */
 package agentsController;
 
-import jade.core.Agent;
 import jade.core.behaviours.CyclicBehaviour;
 import jade.lang.acl.ACLMessage;
+import jade.lang.acl.UnreadableException;
 import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import model.Player;
+import model.Board;
+import model.Package;
 import statics.Messages;
 
 /**
@@ -23,11 +24,12 @@ public class Human extends Player {
     @Override
     protected void setup() {
         super.setup(); //To change body of generated methods, choose Tools | Templates.
+        this.addBehaviour(new HumanBehavior());
     }
 
     @Override
-    public void play() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    public void play(Board board, Package pck) {
+        
     }
 
     class HumanBehavior extends CyclicBehaviour {
@@ -40,23 +42,41 @@ public class Human extends Player {
             ACLMessage message = receive();
 
             if (message != null) {
-                switch (message.getContent()) {
-                    case Messages.STATE_PLAYING:
-                        break;
-                    case Messages.STATE_GAME_OVER:
-                        break;
-                    case Messages.STATE_ATTACK:
-                        break;
+                try {
+                    Package pck = (Package) message.getContentObject();
+                    
+                    switch (message.getContent()) {
+                        case Messages.NOTIFY_DECREMENT_SLUG:
+                            decrementSlugs();
+                            pck.mMessage = Messages.SLUG_DECREMENTED_FINISHED;
+                            reply(message, pck);
+                            
+                            break;
+                            
+                        case Messages.NOTIFY_DECREMENT_SLUG_AND_WM:
+                            decrementSlugs();
+                            decrementWillmills();
+                            pck.mMessage = Messages.SLUG_DECREMENTED_FINISHED;
+                            reply(message, pck);
+                            
+                            break;
+                    }
+                } catch (UnreadableException ex) {
+                    Logger.getLogger(Human.class.getName()).log(Level.SEVERE, null, ex);
                 }
             }
         }
 
-        private void reply(ACLMessage message, char c, Object rep) {
-            ACLMessage answer = message.createReply();
-            answer.setPerformative(ACLMessage.INFORM);
+         private void reply(ACLMessage message, Package rep) {
+            try {
+                ACLMessage answer = message.createReply();
+                answer.setPerformative(ACLMessage.INFORM);
 
-            answer.setContent(rep + "");
-            send(answer);
+                answer.setContentObject(rep);
+                send(answer);
+            } catch (IOException ex) {
+                Logger.getLogger(Machine.class.getName()).log(Level.SEVERE, null, ex);
+            }
         }
 
     }
