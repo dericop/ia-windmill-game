@@ -3,44 +3,79 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-
 package agentsController;
 
 import jade.core.Agent;
 import jade.core.behaviours.CyclicBehaviour;
+import jade.lang.acl.ACLMessage;
 import model.MinimaxPodaAB;
 import model.Player;
+import statics.Messages;
 
 /**
  *
  * @author Dericop
  */
-public class Machine extends Player{
-    
+public class Machine extends Player {
+
     private MinimaxPodaAB minimax;
 
     @Override
     protected void setup() {
-        super.setup(); 
+        super.setup();
     }
 
     @Override
     public void play() {
-        throw new UnsupportedOperationException("Not supported yet."); 
+
+        if (isAssignTime()) {
+            assignSlugInBoard();
+        } else {
+            moveSlugInBoard();
+        }
+
     }
-    
-    
-    class MachineBehavior extends CyclicBehaviour{
+
+    private boolean isAssignTime() {
+        return false;
+    }
+
+    private void assignSlugInBoard() {
+
+    }
+
+    private void moveSlugInBoard() {
+    }
+
+    class MachineBehavior extends CyclicBehaviour {
 
         public MachineBehavior() {
-        
+
         }
 
         @Override
         public void action() {
-            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+            ACLMessage message = receive();
+
+            if (message != null) {
+                switch (message.getContent()) {
+                    case Messages.NEXT_TURN:
+
+                        play();
+                        //reply
+                        break;
+                }
+            }
         }
+
+        private void reply(ACLMessage message, char c, Object rep) {
+            ACLMessage answer = message.createReply();
+            answer.setPerformative(ACLMessage.INFORM);
+
+            answer.setContent(rep + "");
+            send(answer);
+        }
+
     }
 
-    
 }

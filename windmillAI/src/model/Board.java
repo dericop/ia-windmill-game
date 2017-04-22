@@ -5,21 +5,20 @@
  */
 package model;
 
+import java.io.Serializable;
 import java.util.LinkedList;
 
 /**
  *
  * @author Dericop
  */
-public class Board {
-
+public class Board{
+    
     public static int NUMBER_OF_LINES = 16;
     public static int NUMBER_OF_NODES = 24;
 
     private LinkedList<Line> lines;
     private LinkedList<Node> nodes;
-    private final Player player1;
-    private final Player player2;
 
     public LinkedList<Line> getLines() {
         return lines;
@@ -29,21 +28,14 @@ public class Board {
         return nodes;
     }
 
-    public Player getPlayer1() {
-        return player1;
-    }
-
-    public Player getPlayer2() {
-        return player2;
-    }
-
-    public Board(Player p1, Player p2) {
-        player1 = p1;
-        player2 = p2;
+   
+    public Board() {      
         this.lines = new LinkedList<>();
         this.nodes = new LinkedList<>();
+        
         initNodes();
         initLines();
+        calculateAdjacents();
     }
 
     private void initNodes() {
@@ -74,8 +66,26 @@ public class Board {
         }
         System.out.println(this.lines);
     }
-
-    public static void main(String[] args) {
-        Board board = new Board(null, null);
+    
+    private void calculateAdjacents(){
+        for(Node node:nodes){
+            for(Line line: lines){
+                if(line.mCenter.equals(node)){
+                    node.addAdjacent(line.mLeft);
+                    node.addAdjacent(line.mRight);
+                }else if(line.mLeft.equals(node) || line.mRight.equals(node)){
+                    node.addAdjacent(line.mCenter);
+                }
+            }
+        }
+        
+        showAdjacents();
+        
+    }
+    
+    public void showAdjacents(){
+        for (Node node : nodes) {
+            System.out.println(node.getId()+" "+node.getAdjacents());
+        }
     }
 }
