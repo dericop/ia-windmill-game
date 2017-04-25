@@ -12,46 +12,46 @@ import java.util.LinkedList;
  *
  * @author Dericop
  */
-public class Node implements Serializable{
-    
+public class Node implements Serializable {
+
     private static final long serialVersionUID = 879965L;
     private final int id;
     private String mCurrentPlayer;
     private final LinkedList<Node> adjacents;
 
-    
     public Node(int id) {
         this.id = id;
         adjacents = new LinkedList();
+        mCurrentPlayer = "";
     }
 
     public String getmCurrentPlayer() {
         return mCurrentPlayer;
     }
     
+
     public LinkedList<Node> getAdjacents() {
         return adjacents;
     }
-    
-     public int getId() {
+
+    public int getId() {
         return id;
     }
-
 
     public void setmCurrentPlayer(String mCurrentPlayer) {
         this.mCurrentPlayer = mCurrentPlayer;
     }
 
     public void attack() {
-        mCurrentPlayer = "";
+        setmCurrentPlayer("");
     }
-    
-    public void addAdjacent(Node node){
+
+    public void addAdjacent(Node node) {
         adjacents.add(node);
     }
 
     @Override
     public String toString() {
-        return this.id +"";
+        return this.id + "";
     }
 }
