@@ -17,21 +17,16 @@ import jade.lang.acl.UnreadableException;
 import jade.wrapper.AgentController;
 import jade.wrapper.ContainerController;
 import jade.wrapper.StaleProxyException;
-import java.io.File;
 import java.io.IOException;
 import java.util.LinkedList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.imageio.ImageIO;
-import javax.swing.Icon;
-import javax.swing.ImageIcon;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
 import model.Board;
 import model.Line;
 import model.Node;
 import model.Package;
 import statics.Messages;
+import views.GameInterface;
 
 /**
  *
@@ -45,27 +40,21 @@ public class Game extends GuiAgent {
     private String cPlayer; //usuario jugando actualmente
     private String state;
     private char gameType;
-    
-
-    public Game() {
-    }
+    GameInterface gameGUI;
 
     @Override
     protected void setup() {
-        /*this.addBehaviour(new GameBehavior());
-        gameType = Messages.TYPE_MACHINE_MACHINE;
-        state = Messages.STATE_PLACING_SLUGS;
+        this.gameGUI = new GameInterface(this);
+        this.addBehaviour(new GameBehavior());
+    }
 
+    public void startGame(char type) {
+        this.gameType = type;
         board = new Board();
-        
+        state = Messages.STATE_PLACING_SLUGS;
         createPlayerAgents();
         assignTurns();
-        play();*/
-        
-        
-        
-        
-
+        play();
     }
 
     private void createPlayerAgents() {
@@ -111,7 +100,7 @@ public class Game extends GuiAgent {
     }
 
     private void play() {
-        
+
         // solo para la prueba
         board.getNodes().get(0).setmCurrentPlayer(player1);
         board.getNodes().get(3).setmCurrentPlayer(player1);
@@ -132,10 +121,10 @@ public class Game extends GuiAgent {
         board.getNodes().get(14).setmCurrentPlayer(player2);
         board.getNodes().get(21).setmCurrentPlayer(player2);
         board.getNodes().get(22).setmCurrentPlayer(player2);
-        
+
         Package pck = new Package(board, Messages.NEXT_TURN);
         sendMessage(cPlayer, pck);
-        
+
     }
 
     private void playerCanAttack() {
@@ -214,7 +203,7 @@ public class Game extends GuiAgent {
     protected void onGuiEvent(GuiEvent ge) {
 
     }
-    
+
     // verifica si hay molino en el board
     public static boolean isWindMillInLines(LinkedList<Line> lines, String player) {
         boolean isWindMill = false;
