@@ -26,6 +26,8 @@ public class MinimaxPodaAB {
 
     public State getMovement(Tree treeOfStates, boolean isMax) {
         LinkedList<State> children = treeOfStates.getRoot().getChildren();
+        
+        
         double heuristic = Double.NEGATIVE_INFINITY;
         State state = null;
 

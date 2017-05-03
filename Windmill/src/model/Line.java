@@ -11,7 +11,7 @@ import java.io.Serializable;
  *
  * @author Dericop
  */
-public class Line implements Serializable{
+public class Line implements Serializable {
 
     private static final long serialVersionUID = 879965647867471L;
     public int mId;
@@ -19,7 +19,7 @@ public class Line implements Serializable{
     public Node mCenter;
     public Node mRight;
 
-    public Line(int id,Node left, Node center, Node right) {
+    public Line(int id, Node left, Node center, Node right) {
         mId = id;
         mLeft = left;
         mCenter = center;
@@ -41,11 +41,54 @@ public class Line implements Serializable{
         }
         return isWillmill;
     }
-    
-    public int getPlayerCountInLine(String player){
+
+    public int countEmptyNodes() {
+        int count = 0;
+        if (mLeft.getmCurrentPlayer().equals("")) {
+            count++;
+        }
+        if (mCenter.getmCurrentPlayer().equals("")) {
+            count++;
+        }
+        if (mRight.getmCurrentPlayer().equals("")) {
+            count++;
+        }
+
+        return count;
+    }
+
+    public Node getNodeByIndex(int index) {
+        Node node = null;
+        if (index == 0) {
+            node = mLeft;
+        }
+        if (index == 1) {
+            node = mCenter;
+        }
+        if (index == 2) {
+            node = mRight;
+        }
+        return node;
+    }
+
+    public Node getEmptyNode() {
+        Node node;
+        if (mLeft.getmCurrentPlayer().equals("")) {
+            node = mLeft;
+        } else {
+            if (mCenter.getmCurrentPlayer().equals("")) {
+                node = mCenter;
+            } else {
+                node = mRight;
+            }
+        }
+        return node;
+    }
+
+    public int getPlayerCountInLine(String player) {
         int playerCount = 0;
         int emptyCount = 0;
-        
+
         if (this.mLeft.getmCurrentPlayer().equals(player)) {
             playerCount++;
         }
@@ -55,25 +98,12 @@ public class Line implements Serializable{
         if (this.mRight.getmCurrentPlayer().equals(player)) {
             playerCount++;
         }
-        
-        if (this.mLeft.getmCurrentPlayer().equals("")) {
-            emptyCount++;
-        }
-        if (this.mCenter.getmCurrentPlayer().equals("")) {
-            emptyCount++;
-        }
-        if (this.mRight.getmCurrentPlayer().equals("")) {
-            emptyCount++;
-        }
-        
-        if(!(playerCount == 2 && emptyCount == 1))
-            playerCount = 0;
-        
+
         return playerCount;
     }
 
     @Override
     public String toString() {
-        return "[ "+this.mLeft + " " + this.mCenter + " " + this.mRight+" ]";
+        return "[ " + this.mLeft + " " + this.mCenter + " " + this.mRight + " ]";
     }
 }

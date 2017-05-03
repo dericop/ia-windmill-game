@@ -13,7 +13,7 @@ import model.Package;
  *
  * @author Dericop
  */
-public abstract class Player extends Agent{
+public abstract class Player extends Agent {
 
     protected int slugs = 9;
     protected int wQuantity = 0;
@@ -21,21 +21,20 @@ public abstract class Player extends Agent{
     protected String id;
 
     public Player() {
-       
+
     }
 
     @Override
     protected void setup() {
-       this.id = getArguments()[0]+"";
+        this.id = getArguments()[0] + "";
     }
-    
-    
+
     public abstract void play(Board board, Package pck);
 
     public int getSlugsAssigned() {
         return slugsAssigned;
     }
-     
+
     public int getSlugs() {
         return slugs;
     }
@@ -58,6 +57,10 @@ public abstract class Player extends Agent{
 
     public void decrementSlugs() {
         slugs--;
+    }
+
+    public void incrementSlugsAssigned() {
+        slugsAssigned++;
     }
 
 }

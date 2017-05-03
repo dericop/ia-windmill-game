@@ -29,6 +29,7 @@ import statics.Messages;
 public class GameInterface extends javax.swing.JFrame {
 
     final Game game;
+    public LinkedList<JLabel> labels;
 
     public GameInterface(final Game game) {
         initComponents();
@@ -41,12 +42,9 @@ public class GameInterface extends javax.swing.JFrame {
         int y = dim.height / 2 - this.getSize().height / 2;
         this.setLocation(x, y);
 
-        JLabel background = new JLabel(new ImageIcon(getClass().getResource("/Resources/background.jpg")));
-        background.setSize(this.getSize());
         //this.add(background);
 //        this.setComponentZOrder(background, 1);
-
-        LinkedList<JLabel> labels = new LinkedList<>();
+        labels = new LinkedList<>();
 
         for (int i = 1; i < 25; i++) {
             JLabel emptyNode = new JLabel(new ImageIcon(getClass().getResource("/Resources/emptyNode1.png")));

@@ -21,6 +21,8 @@ import java.io.IOException;
 import java.util.LinkedList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.swing.ImageIcon;
+import javax.swing.JLabel;
 import model.Board;
 import model.Line;
 import model.Node;
@@ -38,7 +40,6 @@ public class Game extends GuiAgent {
     public static String player1 = "p1";
     public static String player2 = "p2";
     private String cPlayer; //usuario jugando actualmente
-    private String state;
     private char gameType;
     GameInterface gameGUI;
 
@@ -51,7 +52,6 @@ public class Game extends GuiAgent {
     public void startGame(char type) {
         this.gameType = type;
         board = new Board();
-        state = Messages.STATE_PLACING_SLUGS;
         createPlayerAgents();
         assignTurns();
         play();
@@ -64,25 +64,22 @@ public class Game extends GuiAgent {
         AgentController agent;
 
         try {
-            Object args[] = new Object[1];
+            Object args[] = new Object[2],args1[]= new Object[2];
 
-            String p1;
-            String p2;
+            String p1, p2;
 
-            if (Messages.TYPE_HUMAN_MACHINE == gameType) {
-                p1 = "agentsController.Machine";
-                p2 = "agentsController.Human";
-            } else {
-                p1 = "agentsController.Machine";
+            if (Messages.TYPE_HUMAN_MACHINE != gameType) {
                 p2 = "agentsController.Machine";
+                args1[0] = player2;
+                args1[1] = false;
+                agent = cc.createNewAgent(player2, p2, args1);
+                agent.start();
             }
 
+            p1 = "agentsController.Machine";
             args[0] = player1;
+            args[1] = true;
             agent = cc.createNewAgent(player1, p1, args);
-            agent.start();
-
-            args[0] = player2;
-            agent = cc.createNewAgent(player2, p2, args);
             agent.start();
 
         } catch (StaleProxyException ex) {
@@ -100,36 +97,10 @@ public class Game extends GuiAgent {
     }
 
     private void play() {
-
-        // solo para la prueba
-        board.getNodes().get(0).setmCurrentPlayer(player1);
-        board.getNodes().get(3).setmCurrentPlayer(player1);
-        board.getNodes().get(8).setmCurrentPlayer(player1);
-        board.getNodes().get(10).setmCurrentPlayer(player1);
-        board.getNodes().get(13).setmCurrentPlayer(player1);
-        board.getNodes().get(15).setmCurrentPlayer(player1);
-        board.getNodes().get(16).setmCurrentPlayer(player1);
-        board.getNodes().get(19).setmCurrentPlayer(player1);
-        board.getNodes().get(23).setmCurrentPlayer(player1);
-
-        board.getNodes().get(2).setmCurrentPlayer(player2);
-        board.getNodes().get(5).setmCurrentPlayer(player2);
-        board.getNodes().get(6).setmCurrentPlayer(player2);
-        board.getNodes().get(7).setmCurrentPlayer(player2);
-        board.getNodes().get(9).setmCurrentPlayer(player2);
-        board.getNodes().get(11).setmCurrentPlayer(player2);
-        board.getNodes().get(14).setmCurrentPlayer(player2);
-        board.getNodes().get(21).setmCurrentPlayer(player2);
-        board.getNodes().get(22).setmCurrentPlayer(player2);
-
-        Package pck = new Package(board, Messages.NEXT_TURN);
-        sendMessage(cPlayer, pck);
-
-    }
-
-    private void playerCanAttack() {
-        Package pck = new Package(null, Messages.ATTACK);
-        sendMessage(cPlayer, pck);
+        if (gameType == Messages.TYPE_MACHINE_MACHINE) {
+            Package pck = new Package(board, Messages.NEXT_TURN);
+            sendMessage(cPlayer, pck);
+        }
     }
 
     private void changePlayer() {
@@ -165,35 +136,25 @@ public class Game extends GuiAgent {
     }
 
     private void showGraphicalMove() {
-
+        for (Node node : board.getNodes()) {
+            JLabel labelOfNode = gameGUI.labels.get(node.getId() - 1);
+            ImageIcon icon;
+            if (node.getmCurrentPlayer().equals(player1)) {
+                icon = new ImageIcon(this.getClass().getResource("/Resources/circle.png"));
+                labelOfNode.setIcon(icon);
+            } else if (node.getmCurrentPlayer().equals(player2)) {
+                icon = new ImageIcon(this.getClass().getResource("/Resources/circle2.png"));
+                labelOfNode.setIcon(icon);
+            }
+            gameGUI.repaint();
+        }
+        try {
+            Thread.sleep(1000);
+        } catch (InterruptedException ex) {
+            Logger.getLogger(Game.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
 
-    private void showGraphicalWillmill() {
-
-    }
-
-    private void showGraphicalAttack(String node) {
-
-    }
-
-    private String[] setLogicalMove(Line line) {
-        //ubicar y guardar el origen
-        //hayar el nodo objetivo
-        //reemplazar el objetivo con el nodo origen
-        String[] nodes = new String[2];
-
-        return nodes;
-    }
-
-    private String[] setLogicalMove(Line linO, Line lineD) {
-        String[] nodes = new String[2];
-
-        return nodes;
-    }
-
-    private void attackNode(String node) {
-
-    }
 
     private void showWinner() {
 
@@ -252,50 +213,30 @@ public class Game extends GuiAgent {
                     Package pck = (Package) answer.getContentObject();
 
                     switch (pck.mMessage) {
-
                         case Messages.TURN_FINISHED:
-                            Line line = (Line) pck.args.get("line");
-                            setLogicalMove(line);
+                            board = pck.mBoard;
                             showGraphicalMove();
                             changePlayer();
                             play();
-
                             break;
 
                         case Messages.TURN_FINISHED_WFOUNDED:
-                            Line l = (Line) pck.args.get("line");
-                            setLogicalMove(l);
-                            showGraphicalWillmill();
-                            playerCanAttack();
-
-                            break;
-
-                        case Messages.PLAYER_LOSE:
-                            showWinner();
-                            System.out.println("Has perdido");
-                            break;
-
-                        case Messages.ATTACKED_FINISHED:
-                            String node = pck.args.get("nodeAttacked") + "";
-                            attackNode(node);
-                            showGraphicalAttack(node);
+                            board = pck.mBoard;
+                            showGraphicalMove();
                             changePlayer();
-
-                            if (pck.args.get("willmillWasDestroyed") != null) {
-                                pck.mMessage = Messages.NOTIFY_DECREMENT_SLUG_AND_WM;
-                                sendMessage(cPlayer, pck);
-                            } else {
-                                pck.mMessage = Messages.NOTIFY_DECREMENT_SLUG;
-                                sendMessage(cPlayer, pck);
-                            }
+                            pck.mMessage = Messages.NOTIFY_DECREMENT_SLUG;
 
                             break;
 
                         case Messages.SLUG_DECREMENTED_FINISHED:
                             play();
-
                             break;
 
+                        case Messages.PLAYER_LOSE:
+                            changePlayer();
+                            showWinner();
+                            System.out.println(cPlayer + " Ha perdido");
+                            break;
                     }
                 } catch (UnreadableException ex) {
                     Logger.getLogger(Game.class.getName()).log(Level.SEVERE, null, ex);

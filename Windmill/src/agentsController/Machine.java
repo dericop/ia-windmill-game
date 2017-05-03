@@ -5,7 +5,8 @@
  */
 package agentsController;
 
-import jade.core.Agent;
+import static agentsController.Game.player1;
+import static agentsController.Game.player2;
 import jade.core.behaviours.CyclicBehaviour;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.UnreadableException;
@@ -32,63 +33,39 @@ public class Machine extends Player {
     private Board board;
     private Tree treeOfstates;
     private boolean configuredForWin = false;
-    
 
     @Override
     protected void setup() {
         super.setup();
         this.addBehaviour(new MachineBehavior());
-        
-        id = super.getArguments()[0]+"";
+
+        id = super.getArguments()[0] + "";
+        configuredForWin = (boolean) super.getArguments()[1];
         minimax = new MinimaxPodaAB();
     }
 
     @Override
     public void play(Board board, Package pkc) {
-        pkc.mBoard = null;
+        State moveState = null;
+        createNewMachineMove(board, id);
 
-        if (super.slugs < 3) {//perdi
-            pkc.mMessage = Messages.PLAYER_LOSE;
+        moveState = minimax.getMovement(treeOfstates, configuredForWin);
+        if (moveState != null) {
+            board = moveState.getBoard();
 
-        } else {
-            
-            Board rBoard;
-            State moveState = null;
-            if (isAssignTime()) {
-                rBoard = assignSlugInBoard(board);
-            } else {
-                createNewMachineMove(board, id);
-                moveState = minimax.getMovement(treeOfstates, configuredForWin);
-                rBoard = moveState.getBoard();
-            }
-
-            if (moveState!= null && moveState.isIsLoserNode()) {
-                pkc.mMessage = Messages.PLAYER_LOSE;
-
-            } else { //encontre una solución
-                LinkedList<Line> currentMills = pkc.mCurrentMills;
-                
-                int millsDetected = verifyWillmill(rBoard, currentMills);
-                if (millsDetected > 0) {//encontre molinos
-                    incrementWillmills();
-                    pkc.mMessage = Messages.TURN_FINISHED_WFOUNDED;
-                    pkc.args.put("cMills", millsDetected);
-                } else {
-                    pkc.mMessage = Messages.TURN_FINISHED;
-                    pkc.mBoard = rBoard;
-                }
-            }
         }
+
     }
 
     private int verifyWillmill(Board board, LinkedList<Line> currentMills) {
         int mills = 0;
-        
+
         for (Line line : currentMills) {
-            if(!board.getLines().contains(line))
+            if (!board.getLines().contains(line)) {
                 mills++;
+            }
         }
-        
+
         return mills;
     }
 
@@ -101,31 +78,76 @@ public class Machine extends Player {
         return minimax.getNewAssign(board);
     }
 
-    private int calculateNodeToAttack(Board board) {
-        int nodeTarget = 0;
-        String otherUsr;
-        boolean nodeWasFounded = false;
-
-        if (this.id.equals(Game.player1)) {
-            otherUsr = Game.player2;
+    private boolean putSlugInBoard(Board board) {
+        String enemy = getEnemy();
+        Line lineEnemy = null, linePlayer = null;
+        Node nodeEnemy = null, nodePlayer = null;
+        if (slugsAssigned == 0) {
+            int numberLine = (int) (Math.random() * (board.getLines().size()));
+            linePlayer = board.getLines().get(numberLine);
+            int numberNode = (int) (Math.random() * 3);
+            nodePlayer = linePlayer.getNodeByIndex(numberNode);
+            while (!nodePlayer.getmCurrentPlayer().equals("")) {
+                numberNode = (int) (Math.random() * 3);
+                nodePlayer = linePlayer.getNodeByIndex(numberNode);
+            }
         } else {
-            otherUsr = Game.player1;
+            for (Line line : board.getLines()) {
+                int countEmptyNodes = line.countEmptyNodes();
+                if (line.getPlayerCountInLine(enemy) == 2 && countEmptyNodes == 1) {
+                    lineEnemy = line;
+                    nodeEnemy = line.getEmptyNode();
+                } else {
+                    if ((line.getPlayerCountInLine(id) == 2 && countEmptyNodes == 1)
+                            || (line.getPlayerCountInLine(id) == 1 && countEmptyNodes == 2)
+                            || (countEmptyNodes == 3) || (line.getPlayerCountInLine(id) == 1 && line.getPlayerCountInLine(enemy) == 1 && countEmptyNodes == 1)) {
+                        linePlayer = line;
+                        nodePlayer = line.getEmptyNode();
+                    }
+                }
+            }
         }
+        boolean willmill = false;
+        if (nodeEnemy != null && lineEnemy != null) {
+            nodeEnemy.setmCurrentPlayer(id);
+            willmill = lineEnemy.isComplete(id);
+        } else if (nodePlayer != null && linePlayer != null) {
+            nodePlayer.setmCurrentPlayer(id);
+            willmill = linePlayer.isComplete(id);
+        }
+        incrementSlugsAssigned();
+        return willmill;
+    }
+
+    private String getEnemy() {
+        String enemy = "";
+        if (id.equals(player1)) {
+            enemy = player2;
+        } else {
+            enemy = player1;
+        }
+        return enemy;
+    }
+
+    private Node calculateNodeToAttack(Board board) {
+        Node nodeTarget = null;
+        String otherUsr = getEnemy();
+        boolean nodeWasFounded = false;
 
         //iteracion para evitar molinos
         for (Line line : board.getLines()) {
             if (compare(line.mLeft, otherUsr) && compare(line.mCenter, otherUsr)) {
-                nodeTarget = line.mRight.getId();
+                nodeTarget = line.mRight;
                 nodeWasFounded = true;
                 break;
 
             } else if (compare(line.mCenter, otherUsr) && compare(line.mRight, otherUsr)) {
-                nodeTarget = line.mLeft.getId();
+                nodeTarget = line.mLeft;
                 nodeWasFounded = true;
                 break;
 
             } else if (compare(line.mLeft, otherUsr) && compare(line.mRight, otherUsr)) {
-                nodeTarget = line.mCenter.getId();
+                nodeTarget = line.mCenter;
                 nodeWasFounded = true;
                 break;
             }
@@ -135,17 +157,17 @@ public class Machine extends Player {
         if (!nodeWasFounded) {
             for (Line line : board.getLines()) {
                 if (compare(line.mLeft, otherUsr)) {
-                    nodeTarget = line.mRight.getId();
+                    nodeTarget = line.mRight;
                     nodeWasFounded = true;
                     break;
 
                 } else if (compare(line.mCenter, otherUsr)) {
-                    nodeTarget = line.mLeft.getId();
+                    nodeTarget = line.mLeft;
                     nodeWasFounded = true;
                     break;
 
                 } else if (compare(line.mRight, otherUsr)) {
-                    nodeTarget = line.mCenter.getId();
+                    nodeTarget = line.mCenter;
                     nodeWasFounded = true;
                     break;
                 }
@@ -160,16 +182,15 @@ public class Machine extends Player {
 
                     switch (n) {
                         case 0:
-                            nodeTarget = line.mLeft.getId();
+                            nodeTarget = line.mLeft;
                             break;
                         case 1:
-                            nodeTarget = line.mCenter.getId();
+                            nodeTarget = line.mCenter;
                             break;
                         case 2:
-                            nodeTarget = line.mRight.getId();
+                            nodeTarget = line.mRight;
                             break;
                     }
-
                     break;
                 }
             }
@@ -187,13 +208,6 @@ public class Machine extends Player {
         return lineMove;
     }
 
-    private void attack(Board board, Package pck) {
-        pck.mBoard = null;
-        pck.mMessage = Messages.ATTACKED_FINISHED;
-        int node = calculateNodeToAttack(board); // Calcular el nodo a atacar
-        pck.args.put("nodeAttacked", node);
-    }
-    
     // Verifica si es posible mover alguna ficha del jugador
     private boolean isPosibleMove(LinkedList<Node> slugs) {
         boolean isPosible = false;
@@ -208,11 +222,11 @@ public class Machine extends Player {
         }
         return isPosible;
     }
-    
+
     boolean isOnMinimax = false;
     private int depth = 3;
     int counter = 1;
-    
+
     // este metodo obtiene los nodos en los que hay fichas del jugador actual, eliminando el nodo anterior
     private LinkedList<Node> getSlugs(Board board, String player) {
         LinkedList<Node> slugs = new LinkedList<>();
@@ -223,21 +237,20 @@ public class Machine extends Player {
         }
         return slugs;
     }
-    
+
     // mueve la ficha del jugador actual a el nodo adyacente
     private void move(Node current, Node ady) {
         ady.setmCurrentPlayer(current.getmCurrentPlayer());
         current.setmCurrentPlayer("");
     }
-    
-    
+
     //int counter = 1; cuando ya estan las fichas de los jugadores
     private void createNewMachineMove(Board board, String player) {
         State root = new State(counter + "", null, board, new LinkedList<State>(), 0);
         this.treeOfstates = new Tree(root);
         createTreeOfSolutions(root, player, 0);
     }
-    
+
     public void createTreeOfSolutions(State root, String player, int cDepth) {
 
         LinkedList<Node> slugs = getSlugs(root.getBoard(), player), adys;  // conjunto de nodos marcados por el jugador actual
@@ -275,13 +288,13 @@ public class Machine extends Player {
                                 child.setHeuristic(minimax.calculateHeuristic(child, player));
                                 isOnMinimax = true;
                             }
-                            
+
                             if (isOnMinimax) {
                                 canBound = minimax.miniMaxOfState(child);
 
                                 if (canBound) {
                                     break;
-                                }else{
+                                } else {
                                     isOnMinimax = false;
                                 }
                             }
@@ -294,17 +307,15 @@ public class Machine extends Player {
 
                 if (canBound) {
                     break;
-                }else{
+                } else {
                     isOnMinimax = false;
                 }
             }
 
-        }else{
+        } else {
             root.setIsLoserNode(true);
         }
     }
-    
-    
 
     class MachineBehavior extends CyclicBehaviour {
 
@@ -319,31 +330,41 @@ public class Machine extends Player {
             if (message != null) {
                 try {
                     Package pck = (Package) message.getContentObject();
-
+                    System.out.println(id);
                     switch (pck.mMessage) {
                         case Messages.NEXT_TURN:
-                            play(pck.mBoard, pck);
-                            reply(message, pck);
-                            break;
-
-                        case Messages.ATTACK:
-                            attack(pck.mBoard, pck);
-                            reply(message, pck);
+                            if (slugsAssigned < 9) {
+                                boolean willmillFounded = putSlugInBoard(pck.mBoard);
+                                if (willmillFounded) {
+                                    Node node = calculateNodeToAttack(pck.mBoard);
+                                    node.setmCurrentPlayer("");
+                                    pck.mMessage = Messages.TURN_FINISHED_WFOUNDED;
+                                } else {
+                                    pck.mMessage = Messages.TURN_FINISHED;
+                                    reply(message, pck);
+                                }
+                            } else {
+                                play(pck.mBoard, pck);
+                            }
                             break;
 
                         case Messages.NOTIFY_DECREMENT_SLUG:
                             decrementSlugs();
-                            pck.mMessage = Messages.SLUG_DECREMENTED_FINISHED;
+                            if (slugs < 3 || !isPosibleMove(getSlugs(board, id))) {
+                                pck.mMessage = Messages.PLAYER_LOSE;
+                            } else {
+                                pck.mMessage = Messages.SLUG_DECREMENTED_FINISHED;
+                            }
                             reply(message, pck);
 
                             break;
-                        
+
                         case Messages.NOTIFY_DECREMENT_SLUG_AND_WM:
                             decrementSlugs();
                             decrementWillmills();
                             pck.mMessage = Messages.SLUG_DECREMENTED_FINISHED;
                             reply(message, pck);
-                            
+
                             break;
                     }
                 } catch (UnreadableException ex) {
